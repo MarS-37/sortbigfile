@@ -1,8 +1,8 @@
 #include "SortingManager.h"
 #include "FileManager.h"
-#include "Sorting.h"
 
-void SortingManager::RunSort(const std::string& filename, std::string& resultfilename)
+
+void SortManager::RunSort(const std::string& filename, std::string& resultfilename)
 {
     static int processed = 0;
 
@@ -27,8 +27,8 @@ void SortingManager::RunSort(const std::string& filename, std::string& resultfil
         processed += size1 + size2;
         std::cout << " string processing = " << processed << std::endl;
 
-        SortingManager::MergeSort(part1.get(), 0, size1 - 1);
-        SortingManager::MergeSort(part2.get(), 0, size2 - 1);
+        SortManager::MergeSort(part1.get(), 0, size1 - 1);
+        SortManager::MergeSort(part2.get(), 0, size2 - 1);
 
         FileManager::MergeToFile(part1.get(), part2.get(), size1, size2);
         FileManager::MergeFiles(resultfilename);
@@ -37,7 +37,7 @@ void SortingManager::RunSort(const std::string& filename, std::string& resultfil
     fs.close();
 }
 template <typename T>
-void SortingManager::MergeSort(T* arr, int low, int high)
+void SortManager::MergeSort(T* arr, int low, int high)
 {
     if (low < high) {
         int mid = low + (high - low) / 2;
@@ -47,7 +47,7 @@ void SortingManager::MergeSort(T* arr, int low, int high)
     }
 }
 template <typename T>
-void SortingManager::Merge(T* arr, int low, int mid, int high)
+void SortManager::Merge(T* arr, int low, int mid, int high)
 {
     int n1 = mid - low + 1;
     int n2 = high - mid;

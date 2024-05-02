@@ -4,6 +4,7 @@
 #include "FileManager.h"
 #include "SortingManager.h"
 
+
 int main()
 {
     std::string sourceFileName = "unsorted_file.txt";
@@ -26,7 +27,7 @@ int main()
     // file sorting
     // time tracking
     start = std::chrono::high_resolution_clock::now();
-    SortingManager::RunSort(sourceFileName, resultFileName);
+    SortManager::RunSort(sourceFileName, resultFileName);
 
     // time tracking
     finish = std::chrono::high_resolution_clock::now();

@@ -1,7 +1,7 @@
 #pragma once
 #include "FileManager.h"
 
-class SortingManager
+class SortManager
 {
 public:
     static void RunSort(const std::string& filename, std::string& resultfilename);
