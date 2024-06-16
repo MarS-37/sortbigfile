@@ -3,26 +3,23 @@
 
 void FileManager::CreateRandFile(const std::string& filename)
 {
-    std::fstream fs;
+    std::ofstream ofs(filename, std::ofstream::trunc);
 
-    srand(static_cast<unsigned int>(time(nullptr)));
-
-    const int low = -1'000;
-    const int high = 4'000;
-
-    fs.open(filename, std::fstream::out | std::ofstream::trunc);
-
-    if (fs.is_open()) {
-        std::cout << "File " << filename << " created\n";
-
-        for (int i = 0; i < LINE_IN_FILE; i++) {
-            fs << (low + rand() % high) << std::endl;
-        }
-
-        fs.close();
-
-        std::cout << "File " << filename << " is full\n";
+    if (!ofs) {
+        throw std::runtime_error("Failed to create file.");
     }
+
+    std::cout << "File " << filename << " created\n";
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(-1000, 4000);
+
+    for (int i = 0; i < LINE_IN_FILE; i++) {
+        ofs << dis(gen) << std::endl;
+    }
+
+    std::cout << "File " << filename << " is full\n";
 }
 
 

@@ -35,7 +35,7 @@ int main()
 
 
     // time tracking
-    timer.TimeResult("Sorting time:");
+    timer.TimeResult("Sorting file time:");
     timer.TimeFinish("Finish program:");
 
 
