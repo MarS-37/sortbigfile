@@ -1,5 +1,6 @@
 #include "FileManager.h"
 
+
 void FileManager::CreateRandFile(const std::string& filename)
 {
     std::fstream fs;
@@ -23,6 +24,7 @@ void FileManager::CreateRandFile(const std::string& filename)
         std::cout << "File " << filename << " is full\n";
     }
 }
+
 
 void FileManager::MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2)
 {
@@ -73,6 +75,7 @@ void FileManager::MergeToFile(const int* arr1, const int* arr2, int elements1, i
         temp.close();
     }
 }
+
 
 void FileManager::MergeFiles(const std::string& resultfilename)
 {
@@ -126,6 +129,7 @@ void FileManager::MergeFiles(const std::string& resultfilename)
         return;
     }
 }
+
 
 int FileManager::ReadTempBlock(std::fstream& fs, std::unique_ptr<int[]>& arr)
 {

@@ -36,6 +36,8 @@ void SortManager::RunSort(const std::string& filename, std::string& resultfilena
 
     fs.close();
 }
+
+
 template <typename T>
 void SortManager::MergeSort(T* arr, int low, int high)
 {
@@ -46,6 +48,8 @@ void SortManager::MergeSort(T* arr, int low, int high)
         Merge(arr, low, mid, high);
     }
 }
+
+
 template <typename T>
 void SortManager::Merge(T* arr, int low, int mid, int high)
 {

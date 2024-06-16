@@ -1,8 +1,9 @@
-#include <string>
-#include <ctime>
-#include <chrono>
-#include "FileManager.h"
 #include "SortingManager.h"
+#include "FileManager.h"
+#include "Chronometr.h"
+#include <string>
+#include <chrono>
+#include <ctime>
 
 
 int main()
@@ -10,29 +11,33 @@ int main()
     std::string sourceFileName = "unsorted_file.txt";
     std::string resultFileName = "sorted_file.txt";
 
-    auto start = std::chrono::high_resolution_clock::now();
+
+    // time tracking
+    Chronometr timer;
+    timer.TimeStart("Start program:");
+
 
     // creating a file
     FileManager::CreateRandFile(sourceFileName);
 
+
     // time tracking
-    auto finish = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> durations = finish - start;
-    std::cout << "File creation time: " << (durations.count()) / 60 << " min" << std::endl;
+    timer.TimeResult("File creation time:");
+
 
     std::fstream res;
     res.open(resultFileName, std::fstream::out | std::ofstream::trunc);
     res.close();
 
+ 
     // file sorting
-    // time tracking
-    start = std::chrono::high_resolution_clock::now();
     SortManager::RunSort(sourceFileName, resultFileName);
 
+
     // time tracking
-    finish = std::chrono::high_resolution_clock::now();
-    durations = finish - start;
-    std::cout << "Sorting time: " << (durations.count()) / 60 << " min" << std::endl;
+    timer.TimeResult("Sorting time:");
+    timer.TimeFinish("Finish program:");
+
 
     // deletion request
     char comm;
@@ -42,6 +47,7 @@ int main()
         // Delete temporary files
         FileManager::DeletedFiles();
     }
+
 
     return 0;
 }
