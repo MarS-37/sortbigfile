@@ -8,8 +8,8 @@
 
 
 // size constants
-#define LINE_IN_FILE 200'000'000
-#define TMP_BLOCK    5'000'000
+#define LINE_IN_FILE 200'000
+#define TMP_BLOCK    50'000
 
 class FileManager
 {

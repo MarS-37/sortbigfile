@@ -25,51 +25,37 @@ void FileManager::CreateRandFile(const std::string& filename)
 
 void FileManager::MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2)
 {
-    std::fstream temp;
+    std::ofstream temp("tmp1.txt", std::ofstream::trunc);
 
-    const int* first;
-    const int* second;
-
-    temp.open("tmp1.txt", std::fstream::out | std::ofstream::trunc);
-
-
-    if (arr1[0] < arr2[0]) {
-        first = arr1;
-        second = arr2;
+    if (!temp) {
+        throw std::runtime_error("Failed to create temporary file.");
     }
-    else {
-        first = arr2;
-        second = arr1;
+
+    const int* first = arr1;
+    const int* second = arr2;
+
+    if (arr1[0] > arr2[0]) {
+        std::swap(first, second);
         std::swap(elements1, elements2);
     }
 
-    if (temp.is_open())
-    {
-        int i = 0;
-        int j = 0;
+    int i = 0, j = 0;
 
-        while (i < elements1 && j < elements2) {
-            if (first[i] < second[j]) {
-                temp << first[i++] << std::endl;
-            }
-            else if (first[i] == second[j]) {
-                temp << first[i++] << std::endl;
-                temp << second[j++] << std::endl;
-            }
-            else {
-                temp << second[j++] << std::endl;
-            }
-        }
-
-        while (i < elements1) {
+    while (i < elements1 && j < elements2) {
+        if (first[i] < second[j]) {
             temp << first[i++] << std::endl;
         }
-
-        while (j < elements2) {
+        else {
             temp << second[j++] << std::endl;
         }
+    }
 
-        temp.close();
+    while (i < elements1) {
+        temp << first[i++] << std::endl;
+    }
+
+    while (j < elements2) {
+        temp << second[j++] << std::endl;
     }
 }
 
