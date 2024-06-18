@@ -62,26 +62,19 @@ void FileManager::MergeToFile(const int* arr1, const int* arr2, int elements1, i
 
 void FileManager::MergeFiles(const std::string& resultfilename)
 {
-    std::fstream res;
-    std::fstream temp1;
-    std::fstream temp2;
+    std::ifstream res(resultfilename);
+    std::ifstream temp1("tmp1.txt");
+    std::ofstream temp2("tmp2.txt", std::ofstream::trunc);
 
-    const std::string& tmp1 = "tmp1.txt";
-    const std::string& tmp2 = "tmp2.txt";
-
-    temp1.open(tmp1, std::fstream::in);
-    res.open(resultfilename, std::fstream::in);
-    temp2.open(tmp2, std::fstream::out | std::ofstream::trunc);
-
-    if (!temp1.is_open() || !temp2.is_open() || !res.is_open()) {
-        return;
+    if (!res.is_open() || !temp1.is_open() || !temp2.is_open()) {
+        throw std::runtime_error("Failed to open files for merging.");
     }
 
-    int temp1_value;
-    int res_value;
+    int temp1_value, res_value;
 
     temp1 >> temp1_value;
     res >> res_value;
+
     while (!temp1.eof() && !res.eof()) {
         if (temp1_value <= res_value) {
             temp2 << temp1_value << std::endl;
@@ -103,40 +96,32 @@ void FileManager::MergeFiles(const std::string& resultfilename)
         temp1 >> temp1_value;
     }
 
-    temp1.close();
-    temp2.close();
-    res.close();
-
-    if (!std::filesystem::copy_file("tmp2.txt", resultfilename,
-        std::filesystem::copy_options::overwrite_existing)) {
-        return;
+    if (!std::filesystem::copy_file("tmp2.txt", resultfilename, std::filesystem::copy_options::overwrite_existing)) {
+        throw std::runtime_error("Failed to copy temporary file to result file.");
     }
 }
 
 
-int FileManager::ReadTempBlock(std::fstream& fs, std::unique_ptr<int[]>& arr)
+int FileManager::ReadTempBlock(std::ifstream& fs, std::unique_ptr<int[]>& arr)
 {
-    arr.reset(new int[TMP_BLOCK]);
-    int* tmp_arr;
-    int i;
-    for (i = 0; i < TMP_BLOCK && !fs.eof(); i++)
-        fs >> arr[i];
+    arr = std::make_unique<int[]>(TMP_BLOCK);
+    int i = 0;
+    while (i < TMP_BLOCK && fs >> arr[i]) {
+        ++i;
+    }
 
-    if (i == 1) {
+    if (i == 0) {
         arr.reset();
         return 0;
     }
 
     if (i != TMP_BLOCK) {
-        tmp_arr = new int[i];
-        for (size_t j = 0; j < i; j++)
-            tmp_arr[j] = arr[j];
-
-        arr.reset(tmp_arr);
-        return i - 1;
+        auto tmp_arr = std::make_unique<int[]>(i);
+        std::copy(arr.get(), arr.get() + i, tmp_arr.get());
+        arr.swap(tmp_arr);
     }
 
-    return TMP_BLOCK;
+    return i;
 }
 
 void FileManager::DeletedFiles()

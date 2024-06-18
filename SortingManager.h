@@ -5,7 +5,7 @@
 class SortManager
 {
 public:
-    static void RunSort(const std::string& filename, std::string& resultfilename);
+    static void FileSorts(const std::string& filename, std::string& resultfilename);
 
     template <typename T>
     static void MergeSort(T* arr, int low, int high);

@@ -2,39 +2,69 @@
 #include "FileManager.h"
 
 
-void SortManager::RunSort(const std::string& filename, std::string& resultfilename)
+void SortManager::FileSorts(const std::string& filename, std::string& resultfilename)
 {
-    static int processed = 0;
+	static int processed = 0;
 
-    std::fstream fs;
-    fs.open(filename, std::fstream::in);
+	std::ifstream fs(filename);
 
-    if (!fs.is_open()) {
-        throw std::runtime_error("Failed to open file for reading.");
-    }
+	if (!fs.is_open()) {
+		throw std::runtime_error("Failed to open file for reading.");
+	}
 
-    while (!fs.eof()) {
-        std::unique_ptr<int[]> part1;
-        std::unique_ptr<int[]> part2;
+	std::unique_ptr<int[]> part1;
+	std::unique_ptr<int[]> part2;
 
-        int size1 = FileManager::ReadTempBlock(fs, part1);
-        int size2 = FileManager::ReadTempBlock(fs, part2);
+	while (true) {
 
-        if (size1 == 0 || size2 == 0) {
-            return;
-        }
+		int size1 = FileManager::ReadTempBlock(fs, part1);
+		int size2 = FileManager::ReadTempBlock(fs, part2);
 
-        processed += size1 + size2;
-        std::cout << " string processing = " << processed << std::endl;
+		if (size1 == 0 && size2 == 0) {
+			break;
+		}
 
-        SortManager::MergeSort(part1.get(), 0, size1 - 1);
-        SortManager::MergeSort(part2.get(), 0, size2 - 1);
+		if (size1 > 0) {
+			SortManager::MergeSort(part1.get(), 0, size1 - 1);
+		}
 
-        FileManager::MergeToFile(part1.get(), part2.get(), size1, size2);
-        FileManager::MergeFiles(resultfilename);
-    }
+		if (size2 > 0) {
+			SortManager::MergeSort(part2.get(), 0, size2 - 1);
+		}
 
-    fs.close();
+		if (size1 > 0 && size2 > 0) {
+			processed += size1 + size2;
+
+			std::cout << " string processing = " << processed << std::endl;
+
+			FileManager::MergeToFile(part1.get(), part2.get(), size1, size2);
+			FileManager::MergeFiles(resultfilename);
+		}
+		else if (size1 > 0) {
+			processed += size1;
+
+			std::ofstream temp("tmp1.txt", std::ofstream::trunc);
+
+			for (int i = 0; i < size1; ++i) {
+				temp << part1[i] << std::endl;
+			}
+
+			FileManager::MergeFiles(resultfilename);
+		}
+		else if (size2 > 0) {
+			processed += size2;
+
+			std::ofstream temp("tmp1.txt", std::ofstream::trunc);
+
+			for (int i = 0; i < size2; ++i) {
+				temp << part2[i] << std::endl;
+			}
+
+			FileManager::MergeFiles(resultfilename);
+		}
+	}
+
+	fs.close();
 }
 
 

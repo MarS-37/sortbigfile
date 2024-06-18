@@ -5,11 +5,10 @@
 #include <random>
 
 
-
-
 // size constants
-#define LINE_IN_FILE 200'000
-#define TMP_BLOCK    50'000
+#define LINE_IN_FILE 200'000'000
+#define TMP_BLOCK    10'000'000
+
 
 class FileManager
 {
@@ -20,7 +19,7 @@ public:
 
     static void MergeFiles(const std::string& resultfilename);
 
-    static int ReadTempBlock(std::fstream& fs, std::unique_ptr<int[]>& arr);
+    static int ReadTempBlock(std::ifstream& fs, std::unique_ptr<int[]>& arr);
 
     static void DeletedFiles();
 };
