@@ -1,6 +1,7 @@
 #include "FileManager.h"
 
 
+// function to create a file with random numbers
 void FileManager::CreateRandFile(const std::string& filename)
 {
     std::ofstream ofs(filename, std::ofstream::trunc);
@@ -23,6 +24,7 @@ void FileManager::CreateRandFile(const std::string& filename)
 }
 
 
+// function to merge two arrays into a temporary file
 void FileManager::MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2)
 {
     std::ofstream temp("tmp1.txt", std::ofstream::trunc);
@@ -60,6 +62,7 @@ void FileManager::MergeToFile(const int* arr1, const int* arr2, int elements1, i
 }
 
 
+// function to merge sorted data from temporary files into the result file
 void FileManager::MergeFiles(const std::string& resultfilename)
 {
     std::ifstream res(resultfilename);
@@ -102,10 +105,13 @@ void FileManager::MergeFiles(const std::string& resultfilename)
 }
 
 
+// function to read a block of data from a file into an array
 int FileManager::ReadTempBlock(std::ifstream& fs, std::unique_ptr<int[]>& arr)
 {
     arr = std::make_unique<int[]>(TMP_BLOCK);
+
     int i = 0;
+
     while (i < TMP_BLOCK && fs >> arr[i]) {
         ++i;
     }
@@ -124,6 +130,7 @@ int FileManager::ReadTempBlock(std::ifstream& fs, std::unique_ptr<int[]>& arr)
     return i;
 }
 
+// function to delete temporary files
 void FileManager::DeletedFiles()
 {
     std::filesystem::remove("tmp1.txt");

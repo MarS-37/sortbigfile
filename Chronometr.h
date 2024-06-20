@@ -2,7 +2,7 @@
 #include <iostream>
 #include <chrono>
 
-
+// class for measuring time intervals
 class Chronometr
 {
 public:
