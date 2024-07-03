@@ -1,138 +1,166 @@
 #include "FileManager.h"
 
 
-// function to create a file with random numbers
-void FileManager::CreateRandFile(const std::string& filename)
+// static method initialization
+std::mutex FileManager::mtx;
+
+
+// method creates a file with numbers
+void FileManager::CreateRandFile(size_t num_lines, const std::string& filename)
 {
-    std::ofstream ofs(filename, std::ofstream::trunc);
+    // calculate time
+    Chronometr chronometr;
+    chronometr.TimeStart();
 
-    if (!ofs) {
-        throw std::runtime_error("Failed to create file.");
-    }
+    std::ofstream out_file(filename);
+    if (!out_file)
+        throw std::runtime_error("Failed to open a file to record random numbers!");
 
-    std::cout << "File " << filename << " created\n";
-
+    // random numbers
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(-1000, 4000);
 
-    for (int i = 0; i < LINE_IN_FILE; i++) {
-        ofs << dis(gen) << std::endl;
+    for (size_t i = 0; i < num_lines; ++i) {
+        out_file << dis(gen) << "\n";
+
+        // progress
+        if (i % (num_lines / 100) == 0) {
+            std::lock_guard<std::mutex> guard(mtx);
+            std::cout << "\rFile \"" << filename << "\" created: " << (i * 100 / num_lines) + 1 << " % " << std::flush;
+         }
     }
 
-    std::cout << "File " << filename << " is full\n";
+    out_file.close();
+    std::cout << "\rFile \"" << filename << "\" created: 100%\n";
+
+    // calculate time
+    chronometr.TimeFinish();
+
+    std::lock_guard<std::mutex> guard(mtx);
+    std::cout << "File creation time: " << chronometr.TimeResult() << " min\n\n";
 }
 
 
-// function to merge two arrays into a temporary file
-void FileManager::MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2)
+// method of reading blocks from a file
+std::vector<int> FileManager::ReadBlock(std::ifstream& in_file, size_t block_size)
 {
-    std::ofstream temp("tmp1.txt", std::ofstream::trunc);
+    std::vector<int> block;
+    std::string line;
 
-    if (!temp) {
-        throw std::runtime_error("Failed to create temporary file.");
-    }
-
-    const int* first = arr1;
-    const int* second = arr2;
-
-    if (arr1[0] > arr2[0]) {
-        std::swap(first, second);
-        std::swap(elements1, elements2);
-    }
-
-    int i = 0, j = 0;
-
-    while (i < elements1 && j < elements2) {
-        if (first[i] < second[j]) {
-            temp << first[i++] << std::endl;
+    for (size_t i = 0; i < block_size && std::getline(in_file, line); ++i) {
+        try {
+            block.push_back(std::stoi(line));
         }
-        else {
-            temp << second[j++] << std::endl;
+        catch (const std::invalid_argument& e) {
+            throw std::runtime_error("Error converting a string to number!");
         }
     }
 
-    while (i < elements1) {
-        temp << first[i++] << std::endl;
-    }
-
-    while (j < elements2) {
-        temp << second[j++] << std::endl;
-    }
+    return block;
 }
 
 
-// function to merge sorted data from temporary files into the result file
-void FileManager::MergeFiles(const std::string& resultfilename)
+// method for deleting temporary block files
+void FileManager::DeletedFiles(size_t num_blocks)
 {
-    std::ifstream res(resultfilename);
-    std::ifstream temp1("tmp1.txt");
-    std::ofstream temp2("tmp2.txt", std::ofstream::trunc);
+    char response;
+    std::cout << "\nDelete temporary files& (y/n): ";
+    std::cin >> response;
 
-    if (!res.is_open() || !temp1.is_open() || !temp2.is_open()) {
-        throw std::runtime_error("Failed to open files for merging.");
-    }
-
-    int temp1_value, res_value;
-
-    temp1 >> temp1_value;
-    res >> res_value;
-
-    while (!temp1.eof() && !res.eof()) {
-        if (temp1_value <= res_value) {
-            temp2 << temp1_value << std::endl;
-            temp1 >> temp1_value;
+    if (response == 'y' || response == 'Y') {
+        for (size_t i = 0; i < num_blocks; ++i) {
+            std::string filename = "tmp_" + std::to_string(i) + ".txt";
+            if (std::remove(filename.c_str()) != 0) {
+                std::cerr << "Error when deleting a file: " << filename << "\n";
+            }
+            else {
+                std::cout << " File " << filename << " deleted.\n";
+            }
         }
-        else {
-            temp2 << res_value << std::endl;
-            res >> res_value;
-        }
-    }
-
-    while (!res.eof()) {
-        temp2 << res_value << std::endl;
-        res >> res_value;
-    }
-
-    while (!temp1.eof()) {
-        temp2 << temp1_value << std::endl;
-        temp1 >> temp1_value;
-    }
-
-    if (!std::filesystem::copy_file("tmp2.txt", resultfilename, std::filesystem::copy_options::overwrite_existing)) {
-        throw std::runtime_error("Failed to copy temporary file to result file.");
     }
 }
 
 
-// function to read a block of data from a file into an array
-int FileManager::ReadTempBlock(std::ifstream& fs, std::unique_ptr<int[]>& arr)
+// static method for merging sorted blocks
+void FileManager::MergeSortedBlocks(size_t num_blocks, size_t num_lines)
 {
-    arr = std::make_unique<int[]>(TMP_BLOCK);
+    // calculate time
+    Chronometr chronometr;
+    chronometr.TimeStart();
 
-    int i = 0;
+    // structure for comparing tuples
+    // in the priority queue
+    struct Compare
+    {
+        bool operator()(const std::tuple<int, size_t, std::ifstream*>& a, const std::tuple<int, size_t, std::ifstream*>& b)
+        {
+            // compare the first elements of tuples
+            return std::get<0>(a) > std::get<0>(b);
+        }
+    };
 
-    while (i < TMP_BLOCK && fs >> arr[i]) {
-        ++i;
+    // queue for block merge
+    std::priority_queue<std::tuple<int, size_t, std::ifstream*>,
+        std::vector<std::tuple<int, size_t, std::ifstream*>>,
+        Compare> min_heap;
+
+    // vector of pointer to block files
+    std::vector<std::ifstream*> block_files;
+    // open block files and add the first 
+    // number from each block to the queue
+    for (size_t i = 0; i < num_blocks; ++i) {
+        std::ifstream* in_file = new std::ifstream("tmp_" + std::to_string(i) + ".txt");
+
+        if (!in_file || !*in_file)
+            throw std::runtime_error("Failed to open a file to record sorted numbers!");
+
+        int num;
+
+        if (*in_file >> num)
+            min_heap.emplace(num, i, in_file);
+
+        block_files.push_back(in_file);
     }
 
-    if (i == 0) {
-        arr.reset();
-        return 0;
+    // open a file to record sorted numbers
+    std::ofstream out_file("sorted.txt");
+
+    if (!out_file)
+        throw std::runtime_error("Failed to open a file to record sorted numbers!");
+
+    size_t count = 0;
+
+    // merge sorted blocks
+    while (!min_heap.empty()) {
+        // extract the minimum number from the queue
+        auto [num, block_index, in_file] = min_heap.top();
+        min_heap.pop();
+
+        // write number to file
+        out_file << num << "\n";
+
+        int next_num;
+        if (*in_file >> next_num)
+            min_heap.emplace(next_num, block_index, in_file);
+
+        if (++count % (num_lines / 100) == 0) {
+            std::lock_guard<std::mutex> guard(mtx);
+            std::cout << "\rSorting \"sorted_file.txt\" created: " << (count * 100 / num_lines) + 1 << "%" << std::flush;
+        }
     }
 
-    if (i != TMP_BLOCK) {
-        auto tmp_arr = std::make_unique<int[]>(i);
-        std::copy(arr.get(), arr.get() + i, tmp_arr.get());
-        arr.swap(tmp_arr);
+    std::cout << "\rSorting \"sorted_file.txt\" created: 100%\n";
+
+    // calculate time
+    chronometr.TimeFinish();
+    
+    std::lock_guard<std::mutex> guard(mtx);
+    std::cout << "File sorting time: " << chronometr.TimeResult() << " min\n";
+
+    // close block files and free memory
+    for (auto infile : block_files) {
+        infile->close();
+        delete infile;
     }
-
-    return i;
-}
-
-// function to delete temporary files
-void FileManager::DeletedFiles()
-{
-    std::filesystem::remove("tmp1.txt");
-    std::filesystem::remove("tmp2.txt");
 }

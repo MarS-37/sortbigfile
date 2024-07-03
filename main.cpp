@@ -1,45 +1,35 @@
-#include "SortingManager.h"
+#include "SortManager.h"
 #include "FileManager.h"
-#include "Chronometr.h"
-#include <string>
 
 
 int main()
 {
-	std::string sourceFileName = "unsorted_file.txt";
-	std::string resultFileName = "sorted_file.txt";
+	size_t num_lines;
+	size_t block_size;
 
+	// user input for num_lines and 
+	// block_size values with validation
+	try {
+		std::cout << "Enter number of rows (num_lines): ";
+		std::cin >> num_lines;
 
-	// time tracking
-	Chronometr timer;
-	timer.TimeStart("Start program");
+		if (num_lines < 1000)
+			throw std::invalid_argument("The number of rows must be a positive number!");
 
-	// creating a file
-	FileManager::CreateRandFile(sourceFileName);
+		std::cout << "Enter the block size (block_size): ";
+		std::cin >> block_size;
 
-	// time tracking
-	timer.TimeResult("File creation time");
+		if (block_size < 100)
+			throw std::invalid_argument("The block size must be a positive number!");
 
+		std::cout << std::endl;
+		SortManager sort_manager;
+		sort_manager.SortMerge(num_lines, block_size);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error: " << e.what() << "\n";
 
-	std::fstream res;
-	res.open(resultFileName, std::fstream::out | std::ofstream::trunc);
-	res.close();
-
-	// file sorting
-	SortManager::FileSorts(sourceFileName, resultFileName);
-
-	// time tracking
-	timer.TimeResult("File sorting time");
-	timer.TimeFinish("Finish program");
-
-
-	// deletion request
-	char comm;
-	std::cout << "Delete temporary files? (y/n): ";
-	std::cin >> comm;
-	if (comm == 'y' or comm == 'Y') {
-		// Delete temporary files
-		FileManager::DeletedFiles();
+		return 1;
 	}
 
 

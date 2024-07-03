@@ -1,23 +1,18 @@
 #pragma once
-#include <iostream>
 #include <chrono>
 
-// class for measuring time intervals
+
+// class measures the execution time of operations
 class Chronometr
 {
 public:
-	Chronometr() : started(false) {};
+	void TimeStart();
 
-	// method locks the start
-	void TimeStart(std::string message);
+	void TimeFinish();
 
-	// method to end the time countdown
-	void TimeFinish(std::string message);
-
-	// method for outputting the result of time countdown
-	void TimeResult(std::string message);
+	double TimeResult();
 
 private:
-	bool started;
-	std::chrono::time_point<std::chrono::steady_clock> start_time;
+	std::chrono::high_resolution_clock::time_point start_time;
+	std::chrono::high_resolution_clock::time_point end_time;
 };

@@ -1,30 +1,26 @@
 #pragma once
-#include <filesystem>
+#include "Chronometr.h"
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <mutex>
+#include <queue>
 
 
-// size constants
-#define LINE_IN_FILE 200'000'000
-#define TMP_BLOCK    5'000'000
-
-// class for file management
+// class contains methods for working with 
+// files. create, read, merge and delete
 class FileManager
 {
 public:
-    // function to create a file with random numbers
-    static void CreateRandFile(const std::string& filename);
+    static void CreateRandFile(size_t num_lines, const std::string& filename);
 
-    // function to merge two arrays into a temporary file
-    static void MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2);
+    std::vector<int> ReadBlock(std::ifstream& in_file, size_t block_size);
 
-    // function to merge sorted data from temporary files into the result file
-    static void MergeFiles(const std::string& resultfilename);
+    void DeletedFiles(size_t num_block);
 
-    // function to read a block of data from a file into an array
-    static int ReadTempBlock(std::ifstream& fs, std::unique_ptr<int[]>& arr);
+    static void MergeSortedBlocks(size_t num_blocks, size_t num_lines);
 
-    // function to delete temporary files
-    static void DeletedFiles();
+
+private:
+    static std::mutex mtx;
 };

@@ -1,19 +1,14 @@
-#ifndef SORTALGORITHM_H
-#define SORTALGORITHM_H
+#pragma once
+#include <algorithm>
+#include <fstream>
+#include <vector>
+#include <string>
 
-// template class for MergeSort algorithm
-template <typename T>
+
+// class is responsible for sorting blocks of 
+// numbers numbers and writing them to files
 class SortAlgorithm
 {
 public:
-    // recursive MergeSort function
-    static void MergeSort(T* arr, int low, int high);
-
-private:
-    // merge function to combine two sorted halves
-    static void Merge(T* arr, int low, int mid, int high);
+    static void SortBlock(const std::vector<int>& block, size_t block_index);
 };
-
-#include "SortAlgorithm.cpp"
-
-#endif // SORTALGORITHM_H
